@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Nobres - Tribal Wars</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Fontes com tema Medieval/Fantasia -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --tw-res-wood: #683816;
+            --tw-res-clay: #8f3c18;
+            --tw-res-iron: #7c7c7c;
+        }
+
+        body {
+            background-color: #1e1e1e;
+            background-image: url('https://dsbr.innogamescdn.com/asset/1d2edb2d/graphic/background/bg-image.jpg'); /* Padrão de fundo TW */
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .tw-box {
+            background-color: #f0e6c9; /* Cor base de pergaminho */
+            border: 3px solid #7d510f;
+            border-radius: 8px;
+            box-shadow: 
+                inset 0 0 20px rgba(99, 57, 10, 0.3),
+                0 10px 25px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        /* Título com estilo medieval */
+        .tw-title {
+            font-family: 'Cinzel', serif;
+            color: #3e1d06;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.4);
+        }
+
+        /* Inputs estilizados */
+        .tw-input {
+            background-color: #fffdf2;
+            border: 1px solid #7d510f;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+        
+        /* Seleção de Bandeiras e Botões */
+        .flag-radio:checked + label {
+            transform: scale(1.15);
+            border-color: #ffd700;
+            box-shadow: 0 0 10px #ffd700;
+            z-index: 10;
+        }
+
+        .btn-recruit {
+            background: linear-gradient(to bottom, #94c346 0%, #6db016 100%);
+            border: 1px solid #487b08;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 2px rgba(0,0,0,0.3);
+            text-shadow: 0 -1px 0 rgba(0,0,0,0.3);
+        }
+        .btn-recruit:hover {
+            background: linear-gradient(to bottom, #a5d650 0%, #7bc41c 100%);
+        }
+        .btn-recruit:active {
+            transform: translateY(1px);
+        }
+
+        .item-checkbox:checked + div {
+            background-color: rgba(148, 195, 70, 0.2);
+            border-color: #6db016;
+        }
+
+        /* Ícones de Recursos */
+        .res-icon {
+            width: 18px;
+            height: 18px;
+            display: inline-block;
+            margin-right: 4px;
+            border-radius: 50%;
+        }
+        .icon-wood { background-color: var(--tw-res-wood); }
+        .icon-clay { background-color: var(--tw-res-clay); }
+        .icon-iron { background-color: var(--tw-res-iron); }
+
+        /* Cores das bandeiras (mantidas do pedido anterior) */
+        .bg-flag-grey { background-color: #808080; }
+        .bg-flag-brown { background-color: #8B4513; }
+        .bg-flag-red { background-color: #B22222; }
+        .bg-flag-yellow { background-color: #FFD700; }
+        .bg-flag-green { background-color: #228B22; }
+        .bg-flag-darkblue { background-color: #00008B; }
+        .bg-flag-lightblue { background-color: #87CEEB; }
+        .bg-flag-purple { background-color: #800080; }
+
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Main Container -->
+    <div class="tw-box w-full max-w-3xl p-6 md:p-8">
+        
+        <!-- Header -->
+        <div class="text-center mb-8 border-b border-[#cbb588] pb-4">
+            <h1 class="tw-title text-3xl md:text-4xl font-bold mb-2">Cunhagem de Moedas</h1>
+            <p class="text-[#603813] text-sm font-medium">Limite de Nobres e Planejamento de Recursos</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- Coluna Esquerda: Inputs -->
+            <div class="space-y-6">
+                
+                <!-- Dados Básicos -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[#603813] font-bold mb-1 text-sm uppercase tracking-wider">Moedas já Cunhadas (Total Acumulado)</label>
+                        <input type="number" id="currentCoins" class="tw-input w-full p-3 rounded text-gray-800 font-bold text-lg" placeholder="Ex: 100803" min="0" oninput="calculate()">
+                    </div>
+                    
+                    <!-- NOVO CAMPO: Novos Nobres a Cunhar -->
+                    <div>
+                        <label class="block text-[#603813] font-bold mb-1 text-sm uppercase tracking-wider">Novos Nobres a Cunhar (Slots Extras)</label>
+                        <input type="number" id="newNoblesToMint" class="tw-input w-full p-3 rounded text-gray-800 font-bold text-lg" placeholder="Ex: 5" min="0" oninput="calculate()">
+                    </div>
+
+                    <div>
+                        <label class="block text-[#603813] font-bold mb-1 text-sm uppercase tracking-wider">Aldeias Conquistadas</label>
+                        <input type="number" id="conqueredVillages" class="tw-input w-full p-3 rounded text-gray-800 font-bold text-lg" placeholder="Ex: 414" min="0" oninput="calculate()">
+                        <p class="text-[10px] text-gray-500 mt-1">O cálculo considera a aldeia capital (+1) automaticamente.</p>
+                    </div>
+                </div>
+
+                <!-- Bônus de Bandeira -->
+                <div>
+                    <label class="block text-[#603813] font-bold mb-3 text-sm uppercase tracking-wider">
+                        <i class="fas fa-flag mr-1"></i> Bônus de Bandeira
+                    </label>
+                    <div class="flex flex-wrap gap-2 justify-center md:justify-start bg-[#e6d8ad] p-3 rounded-lg border border-[#cbb588]">
+                        <!-- Geração Dinâmica das Bandeiras -->
+                        <div class="relative group">
+                            <input type="radio" name="flag" id="flag-0" value="0" class="flag-radio hidden" checked onchange="calculate()">
+                            <label for="flag-0" class="block w-8 h-8 rounded-full bg-gray-300 border-2 border-gray-400 cursor-pointer hover:opacity-80 transition-all flex items-center justify-center" title="Sem Bandeira">
+                                <i class="fas fa-times text-gray-500 text-xs"></i>
+                            </label>
+                        </div>
+                        <!-- Bandeiras com cores e % conforme solicitado -->
+                        <div class="relative group"><input type="radio" name="flag" id="flag-10" value="10" class="flag-radio hidden" onchange="calculate()"><label for="flag-10" class="bg-flag-grey block w-8 h-8 rounded-full border-2 border-gray-600 cursor-pointer hover:opacity-80 transition-all text-white text-[10px] flex items-center justify-center font-bold">10</label></div>
+                        <div class="relative group"><input type="radio" name="flag" id="flag-12" value="12" class="flag-radio hidden" onchange="calculate()"><label for="flag-12" class="bg-flag-brown block w-8 h-8 rounded-full border-2 border-[#5c3a1e] cursor-pointer hover:opacity-80 transition-all text-white text-[10px] flex items-center justify-center font-bold">12</label></div>
+                         <div class="relative group"><input type="radio" name="flag" id="flag-14" value="14" class="flag-radio hidden" onchange="calculate()"><label for="flag-14" class="bg-flag-red block w-8 h-8 rounded-full border-2 border-[#800000] cursor-pointer hover:opacity-80 transition-all text-white text-[10px] flex items-center justify-center font-bold">14</label></div>
+                        <div class="relative group"><input type="radio" name="flag" id="flag-16" value="16" class="flag-radio hidden" onchange="calculate()"><label for="flag-16" class="bg-flag-yellow block w-8 h-8 rounded-full border-2 border-[#DAA520] cursor-pointer hover:opacity-80 transition-all text-black text-[10px] flex items-center justify-center font-bold">16</label></div>
+                        <div class="relative group"><input type="radio" name="flag" id="flag-18" value="18" class="flag-radio hidden" onchange="calculate()"><label for="flag-18" class="bg-flag-green block w-8 h-8 rounded-full border-2 border-[#006400] cursor-pointer hover:opacity-80 transition-all text-white text-[10px] flex items-center justify-center font-bold">18</label></div>
+                         <div class="relative group"><input type="radio" name="flag" id="flag-20" value="20" class="flag-radio hidden" onchange="calculate()"><label for="flag-20" class="bg-flag-darkblue block w-8 h-8 rounded-full border-2 border-[#000080] cursor-pointer hover:opacity-80 transition-all text-white text-[10px] flex items-center justify-center font-bold">20</label></div>
+                        <div class="relative group"><input type="radio" name="flag" id="flag-22" value="22" class="flag-radio hidden" onchange="calculate()"><label for="flag-22" class="bg-flag-lightblue block w-8 h-8 rounded-full border-2 border-[#4682B4] cursor-pointer hover:opacity-80 transition-all text-black text-[10px] flex items-center justify-center font-bold">22</label></div>
+                         <div class="relative group"><input type="radio" name="flag" id="flag-23" value="23" class="flag-radio hidden" onchange="calculate()"><label for="flag-23" class="bg-flag-purple block w-8 h-8 rounded-full border-2 border-[#4B0082] cursor-pointer hover:opacity-80 transition-all text-white text-[10px] flex items-center justify-center font-bold">23</label></div>
+                    </div>
+                </div>
+
+                <!-- Itens Extras -->
+                <div class="grid grid-cols-2 gap-4">
+                    <label class="cursor-pointer relative">
+                        <input type="checkbox" id="booster" class="item-checkbox hidden" onchange="calculate()">
+                        <div class="border border-[#cbb588] rounded p-2 flex flex-col items-center justify-center h-full bg-[#e6d8ad] hover:bg-[#dfd1a6] transition-colors">
+                            <i class="fas fa-clone text-2xl text-[#603813] mb-1"></i>
+                            <span class="text-xs font-bold text-[#3e1d06] text-center">Duplicador</span>
+                            <span class="text-[10px] text-gray-600 text-center">Dobra bandeira</span>
+                        </div>
+                    </label>
+
+                    <label class="cursor-pointer relative">
+                        <input type="checkbox" id="decree" class="item-checkbox hidden" onchange="calculate()">
+                        <div class="border border-[#cbb588] rounded p-2 flex flex-col items-center justify-center h-full bg-[#e6d8ad] hover:bg-[#dfd1a6] transition-colors">
+                            <i class="fas fa-scroll text-2xl text-[#603813] mb-1"></i>
+                            <span class="text-xs font-bold text-[#3e1d06] text-center">Decreto Real</span>
+                            <span class="text-[10px] text-green-700 font-bold text-center">-10% Custo</span>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Botão Calcular (Mantido, mas menos necessário) -->
+                <button onclick="calculate()" class="btn-recruit w-full py-3 rounded text-white font-bold uppercase tracking-wider text-lg mt-4">
+                    Recalcular Manualmente
+                </button>
+
+            </div>
+
+            <!-- Coluna Direita: Resultados -->
+            <div class="bg-[#fbfaf6] border border-[#c9c0ac] rounded p-4 flex flex-col relative">
+                <!-- Decoração de canto -->
+                <div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#8e735b]"></div>
+                <div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[#8e735b]"></div>
+
+                <h2 class="tw-title text-xl font-bold text-[#800000] mb-4 border-b border-gray-300 pb-2">Relatório de Custos e Limite</h2>
+
+                <div id="results-area" class="flex-1 flex flex-col justify-center items-center text-center opacity-50">
+                    <i class="fas fa-calculator text-4xl text-gray-300 mb-2"></i>
+                    <p class="text-gray-400 text-sm">Preencha os dados e clique em calcular.</p>
+                </div>
+
+                <div id="results-content" class="hidden space-y-4">
+                    
+                    <!-- Contexto do Limite Atual -->
+                    <div class="bg-[#e6d8ad] p-3 rounded border border-[#cbb588] text-[#3e1d06]">
+                        <p class="text-sm font-bold border-b border-dotted mb-2">Status do Limite de Nobres:</p>
+                        
+                        <!-- Limite Atual (Calculado) -->
+                        <div class="flex justify-between text-base">
+                            <span>Limite ATUAL (Pelas moedas):</span>
+                            <span id="current-noble-limit" class="font-bold text-lg text-green-700">0</span>
+                        </div>
+                        
+                        <!-- Limite Desejado (Novo) -->
+                        <div class="flex justify-between text-base border-b border-dotted pb-1">
+                            <span>Limite DESEJADO (Total):</span>
+                            <span id="target-noble-limit" class="font-bold text-lg text-blue-700">0</span>
+                        </div>
+
+                        <div class="flex justify-between text-base pt-1">
+                            <span>Nobres Usados (Total de Aldeias):</span>
+                            <span id="nobles-used" class="font-bold text-lg text-red-700">0</span>
+                        </div>
+                        <div class="flex justify-between text-base border-t pt-1 mt-1">
+                            <span class="font-bold">Capacidade Livre Restante:</span>
+                            <span id="available-nobles" class="font-extrabold text-xl text-green-900">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Resumo de Moedas -->
+                    <div class="bg-[#fcf7e3] p-3 rounded border border-[#cbb588]">
+                        <p class="text-sm text-[#603813] font-medium">Moedas Faltantes para o Limite Desejado:</p>
+                        <p id="missing-coins" class="text-3xl font-bold text-[#800000] text-center mt-1">0</p>
+                        <p class="text-xs text-gray-600 mt-1 text-center">Total de moedas a cunhar.</p>
+                    </div>
+
+                    <!-- Custo Unitário e Desconto -->
+                    <div class="text-sm text-center">
+                        <p class="font-bold text-[#3e1d06]">Custo Unitário da Moeda (<span id="discount-display" class="text-green-600">0%</span> OFF)</p>
+                    </div>
+
+                    <!-- Tabela de Recursos -->
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between border-b border-dotted border-gray-400 pb-1">
+                            <div class="flex items-center"><span class="res-icon icon-wood"></span> <span class="text-[#3e1d06] font-medium">Madeira</span></div>
+                            <span id="wood-cost" class="font-bold text-[#3e1d06]">0</span>
+                        </div>
+                        <div class="flex items-center justify-between border-b border-dotted border-gray-400 pb-1">
+                            <div class="flex items-center"><span class="res-icon icon-clay"></span> <span class="text-[#3e1d06] font-medium">Argila</span></div>
+                            <span id="clay-cost" class="font-bold text-[#3e1d06]">0</span>
+                        </div>
+                        <div class="flex items-center justify-between border-b border-dotted border-gray-400 pb-1">
+                            <div class="flex items-center"><span class="res-icon icon-iron"></span> <span class="text-[#3e1d06] font-medium">Ferro</span></div>
+                            <span id="iron-cost" class="font-bold text-[#3e1d06]">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Totalizador -->
+                    <div class="mt-4 pt-2 border-t-2 border-[#cbb588]">
+                        <p class="text-xs uppercase font-bold text-gray-500 text-center mb-1">TOTAL DE RECURSOS A JUNTAR</p>
+                        <p id="grand-total-resources" class="text-2xl font-bold text-center text-[#800000]">0</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        
+        <!-- Footer Note -->
+        <div class="mt-6 text-center text-xs text-[#603813] opacity-70">
+            Cálculos baseados nas fórmulas oficiais de cunhagem de moedas do Tribal Wars.
+        </div>
+
+    </div>
+
+    <script>
+        // Executa o cálculo inicial ao carregar a página
+        window.onload = function() {
+            calculate();
+        };
+        
+        function formatNumber(num) {
+            // Formata o número para o padrão brasileiro (milhar com ponto)
+            return Math.round(num).toLocaleString('pt-BR');
+        }
+
+        // Função para calcular o Limite de Nobres (N) dado o total de moedas (S)
+        // Fórmula: S = N*(N+1)/2. Resolvemos para N: N = (sqrt(8*S + 1) - 1) / 2
+        function calculateNobleLimit(totalCoins) {
+            if (totalCoins <= 0) return 0;
+            // Usa Math.floor pois o limite de nobres deve ser um número inteiro.
+            return Math.floor((Math.sqrt(8 * totalCoins + 1) - 1) / 2);
+        }
+
+        // Função para calcular o total de moedas (S) dado o limite de nobres (N)
+        // Fórmula: S = N*(N+1)/2
+        function calculateTotalCoins(nobleLimit) {
+            return (nobleLimit * (nobleLimit + 1)) / 2;
+        }
+
+        function calculate() {
+            // 1. Obter valores dos inputs
+            const currentCoins = parseInt(document.getElementById('currentCoins').value) || 0;
+            const newNoblesToMint = parseInt(document.getElementById('newNoblesToMint').value) || 0;
+            const conqueredVillages = parseInt(document.getElementById('conqueredVillages').value) || 0;
+
+            // 2. Cálculo do Limite Atual (Baseado nas Moedas Cunhadas)
+            const currentNobleLimit = calculateNobleLimit(currentCoins);
+            
+            // 3. Cálculo do Limite Desejado (Limite Atual + Novos Nobres)
+            const targetNobles = currentNobleLimit + newNoblesToMint;
+            
+            // 4. Nobres Usados e Capacidade Livre
+            // Nobres Usados = Aldeias Conquistadas + 1 (A capital)
+            const noblesUsed = conqueredVillages + 1;
+            
+            // O Limite de Nobres não deve ser menor que o total de aldeias
+            if (currentNobleLimit < noblesUsed) {
+                // Se o limite atual for menor que o número de aldeias, ele é zero, mas a pessoa ainda pode ter nobres livres
+                // Se o jogador tem 415 aldeias mas só 400 limite, ele está no vermelho, mas o foco do cálculo de custo é o Target Nobles.
+                // Aqui não interrompemos, apenas exibimos o status correto abaixo.
+            }
+            
+            let availableNobles = targetNobles - noblesUsed;
+            // availableNobles pode ser negativo se o jogador estiver no "vermelho" no limite (Limite < Aldeias)
+            // Mantemos o valor para a lógica correta, mas a exibição no painel de Capacidade Livre pode ser tratada na UI.
+
+            // 5. Moedas Faltantes
+            const totalCoinsNeededForTargetLimit = calculateTotalCoins(targetNobles);
+            
+            let coinsToMint = totalCoinsNeededForTargetLimit - currentCoins;
+            if (coinsToMint < 0) coinsToMint = 0; // Não precisa cunhar se já passou.
+
+            // 6. Cálculo do Desconto Total e Custos Unitários (Sem alteração na lógica)
+            const baseWood = 28000;
+            const baseClay = 30000;
+            const baseIron = 25000;
+
+            const selectedFlag = document.querySelector('input[name="flag"]:checked');
+            let flagPercent = selectedFlag ? parseFloat(selectedFlag.value) : 0;
+
+            const boosterActive = document.getElementById('booster').checked;
+            if (boosterActive) {
+                flagPercent = flagPercent * 2;
+            }
+
+            const decreeActive = document.getElementById('decree').checked;
+            let decreePercent = decreeActive ? 10 : 0;
+
+            let totalDiscountPercent = flagPercent + decreePercent;
+            if (totalDiscountPercent > 100) totalDiscountPercent = 100;
+
+            const multiplier = 1 - (totalDiscountPercent / 100);
+
+            // Calcular Custo Unitário Final (Recursos)
+            const costWood = Math.ceil(baseWood * multiplier);
+            const costClay = Math.ceil(baseClay * multiplier);
+            const costIron = Math.ceil(baseIron * multiplier);
+            
+            // 7. Totais de Recursos
+            const totalWood = coinsToMint * costWood;
+            const totalClay = coinsToMint * costClay;
+            const totalIron = coinsToMint * costIron;
+            const grandTotal = totalWood + totalClay + totalIron;
+
+            // 8. Atualizar UI
+            // Se não houver valores válidos, mostra a área de instruções
+            if (currentCoins === 0 && newNoblesToMint === 0) {
+                document.getElementById('results-area').classList.remove('hidden');
+                document.getElementById('results-content').classList.add('hidden');
+                return;
+            }
+            
+            document.getElementById('results-area').classList.add('hidden');
+            document.getElementById('results-content').classList.remove('hidden');
+
+            // Atualiza Contexto do Limite
+            document.getElementById('current-noble-limit').innerText = formatNumber(currentNobleLimit);
+            document.getElementById('target-noble-limit').innerText = formatNumber(targetNobles);
+            document.getElementById('nobles-used').innerText = formatNumber(noblesUsed);
+            
+            // Capacidade Livre (muda a cor se for negativo)
+            const remainingNobles = targetNobles - noblesUsed;
+            const availableNoblesElement = document.getElementById('available-nobles');
+            
+            availableNoblesElement.innerText = formatNumber(remainingNobles);
+            
+            // Atualiza cor do texto para indicar se está no vermelho/verde
+            availableNoblesElement.classList.remove('text-green-900', 'text-red-600');
+            if (remainingNobles > 0) {
+                availableNoblesElement.classList.add('text-green-900');
+            } else if (remainingNobles < 0) {
+                availableNoblesElement.classList.add('text-red-600');
+            } else {
+                availableNoblesElement.classList.add('text-green-900'); // Ou qualquer outra cor neutra/positiva para 0
+            }
+            
+            // Atualiza Resumo de Moedas
+            document.getElementById('missing-coins').innerText = formatNumber(coinsToMint);
+            
+            // Atualiza Custos e Descontos
+            document.getElementById('discount-display').innerText = totalDiscountPercent + '%';
+
+            document.getElementById('wood-cost').innerText = formatNumber(totalWood);
+            document.getElementById('clay-cost').innerText = formatNumber(totalClay);
+            document.getElementById('iron-cost').innerText = formatNumber(totalIron);
+            
+            document.getElementById('grand-total-resources').innerText = formatNumber(grandTotal);
+        }
+    </script>
+</body>
+</html>
